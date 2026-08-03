@@ -3,11 +3,15 @@
 // 採用 Cache-First 策略，優先從快取讀取
 // ====================================
 
-const CACHE_NAME = 'gforce-meter-v4';
+const CACHE_NAME = 'gforce-meter-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
+  './favicon.ico',
   './css/styles.css',
   './js/filter.js',
   './js/sensor.js',
