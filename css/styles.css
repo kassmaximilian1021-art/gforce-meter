@@ -238,14 +238,14 @@ body::before {
 }
 
 .gforce-label {
-  font-size: 0.85rem;
+  font-size: 1.3rem; /* 放大前後方向標籤字體 */
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #FFFFFF;
   -webkit-text-stroke: 1px #000000;
   text-shadow: 0 0 10px #000000;
-  margin-top: 1rem;
+  margin-top: 1.2rem;
 }
 
 .gforce-secondary {
