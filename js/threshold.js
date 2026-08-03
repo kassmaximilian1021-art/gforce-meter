@@ -82,42 +82,29 @@ export class ThresholdManager {
     return `rgb(${r}, ${g}, ${b})`;
   }
 
-  // 返回 CSS 顏色 (插值)
+  // 返回 CSS 顏色 (只在門檻前後 +/- 0.02 變色，高度對比)
   getColorForG(gValue) {
-    // 0G 區域 (-0.1~+0.1) 保持 emerald green
-    if (gValue > -0.1 && gValue < 0.1) {
-      return '#10B981'; // 翡翠綠
-    }
+    if (gValue >= 0.32) return '#FF00FF'; // Magenta
+    if (gValue <= -0.32) return '#FF0000'; // Red
 
-    // 定義所有色彩節點進行插值（包含極端值）
-    const colorStops = [
-      { v: 0.4, c: '#7C3AED' }, // 深紫
-      { v: 0.3, c: '#8B5CF6' },
-      { v: 0.2, c: '#3B82F6' },
-      { v: 0.1, c: '#06B6D4' },
-      { v: 0.1, c: '#10B981' }, // 平滑過渡至 0G 區
-      { v: -0.1, c: '#10B981' },
-      { v: -0.1, c: '#F59E0B' },
-      { v: -0.2, c: '#F97316' },
-      { v: -0.3, c: '#EF4444' },
-      { v: -0.4, c: '#DC2626' }  // 深紅
+    const stops = [
+      { v: 0.3, c: '#FF00FF' }, // 0.3G: Magenta
+      { v: 0.2, c: '#00FFFF' }, // 0.2G: Cyan
+      { v: 0.1, c: '#00FF00' }, // 0.1G: Lime Green
+      { v: 0.0, c: '#1E293B' }, // 0.0G: 暗灰色 (平靜基準)
+      { v: -0.1, c: '#FFFF00' }, // -0.1G: Yellow
+      { v: -0.2, c: '#FF8800' }, // -0.2G: Orange
+      { v: -0.3, c: '#FF0000' }  // -0.3G: Red
     ];
 
-    if (gValue >= 0.4) return '#7C3AED';
-    if (gValue <= -0.4) return '#DC2626';
-
-    // 尋找對應區間
-    for (let i = 0; i < colorStops.length - 1; i++) {
-      const upper = colorStops[i];
-      const lower = colorStops[i + 1];
-      if (gValue <= upper.v && gValue >= lower.v) {
-        if (upper.v === lower.v) return upper.c;
-        const factor = (gValue - lower.v) / (upper.v - lower.v);
-        return this._interpolateColor(lower.c, upper.c, factor);
+    for (const stop of stops) {
+      if (Math.abs(gValue - stop.v) <= 0.02) {
+        return stop.c;
       }
     }
     
-    return '#10B981';
+    // 不在門檻區間內，返回預設深色背景
+    return '#0F172A'; 
   }
 
   // 返回 CSS 背景樣式 (radial-gradient)

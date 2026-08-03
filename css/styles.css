@@ -4,7 +4,7 @@
    ================================================================ */
 
 /* === Google Fonts === */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&family=Oswald:wght@700&display=swap');
 
 /* === CSS 設計標記系統 (Design Tokens) === */
 :root {
@@ -209,14 +209,17 @@ body::before {
 }
 
 .gforce-primary {
-  font-family: var(--font-mono);
-  font-size: 28vw; /* 超巨大字體，隨螢幕寬度自動放大，避免負號換行 */
-  font-weight: 900;
+  font-family: 'Oswald', 'Impact', var(--font-mono);
+  font-size: 28vw; /* 巨大字體 */
+  font-weight: 700;
   line-height: 1;
   color: var(--text-primary);
   text-shadow: 0 0 40px var(--dynamic-glow);
   transition: text-shadow var(--transition-normal);
   letter-spacing: -0.02em;
+  transform: scaleY(1.8); /* 縱向拉長 1.8 倍 */
+  transform-origin: center;
+  margin: 8vh 0; /* 給予上下足夠空間避免與其他元素重疊 */
 }
 
 .gforce-unit {
