@@ -239,10 +239,16 @@ function bindEvents() {
 // ==========================================
 function handleDisclaimerAgree() {
   state.disclaimerAccepted = true;
+  localStorage.setItem('disclaimerAccepted', 'true');
   dom.disclaimerModal.classList.remove('visible');
 
   // 顯示主應用程式
   dom.app.classList.remove('hidden');
+
+  // 重新調整圖表大小 (因為原本 hidden 時取不到正確長寬)
+  if (chart) {
+    chart.resize();
+  }
 
   // 初始化音效（必須在使用者手勢中呼叫）
   audio.initFromUserGesture();
