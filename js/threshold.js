@@ -98,7 +98,7 @@ export class ThresholdManager {
     ];
 
     for (const stop of stops) {
-      if (Math.abs(gValue - stop.v) <= 0.02) {
+      if (Math.abs(gValue - stop.v) <= 0.025) {
         return stop.c;
       }
     }
