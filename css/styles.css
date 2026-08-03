@@ -205,21 +205,21 @@ body::before {
   padding: var(--space-md);
   position: relative;
   flex: 1;
-  min-height: 50vh; /* 適度高度，避免推擠其他元件 */
+  min-height: 85vh; /* 佔滿 85% 畫面，圖表往下滑看 */
 }
 
 .gforce-primary {
   display: inline-block;
   font-family: 'Oswald', 'Impact', var(--font-mono);
-  font-size: clamp(4.5rem, 20vw, 7.5rem); /* 自適應大小，兼顧清晰與不破版 */
+  font-size: clamp(8rem, 30vw, 13rem); /* 巨大醒目數字 */
   font-weight: 700;
-  line-height: 1;
+  line-height: 0.9;
   color: var(--text-primary);
   text-shadow: 0 0 40px var(--dynamic-glow);
   transition: text-shadow var(--transition-normal);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   white-space: nowrap;
-  margin: 0; /* 完全清空 margin，避免推開版面 */
+  margin: 0; /* 靠 flex 置中，不需要外距 */
 }
 
 .gforce-unit {
