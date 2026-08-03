@@ -209,6 +209,7 @@ body::before {
 }
 
 .gforce-primary {
+  display: inline-block; /* 必須設為 inline-block 才能套用 transform */
   font-family: 'Oswald', 'Impact', var(--font-mono);
   font-size: 28vw; /* 巨大字體 */
   font-weight: 700;
@@ -218,7 +219,7 @@ body::before {
   transition: text-shadow var(--transition-normal);
   letter-spacing: -0.02em;
   transform: scaleY(1.8); /* 縱向拉長 1.8 倍 */
-  transform-origin: center;
+  transform-origin: bottom; /* 基線對齊底部比較好看 */
   margin: 8vh 0; /* 給予上下足夠空間避免與其他元素重疊 */
 }
 
