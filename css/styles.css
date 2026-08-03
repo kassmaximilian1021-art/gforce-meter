@@ -211,17 +211,17 @@ body::before {
 .gforce-primary {
   display: inline-block; /* 必須設為 inline-block 才能套用 transform */
   font-family: 'Oswald', 'Impact', var(--font-mono);
-  font-size: 50vw; /* 突破極限的巨大字體 */
+  font-size: 38vw; /* 完美黃金比例巨大字體 */
   font-weight: 700;
-  line-height: 0.8;
+  line-height: 1;
   color: var(--text-primary);
   text-shadow: 0 0 40px var(--dynamic-glow);
   transition: text-shadow var(--transition-normal);
-  letter-spacing: -0.08em; /* 強制縮緊字距避免換行 */
-  white-space: nowrap; /* 絕對不換行，哪怕超出版面 */
-  transform: scaleY(4.5); /* 縱向拉長到 4.5 倍 */
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  transform: scaleY(2.8); /* 縱向拉長 2.8 倍 */
   transform-origin: bottom;
-  margin: 25vh 0 15vh 0; /* 上下留出極度誇張的空間避免破版 */
+  margin: 12vh 0 6vh 0; /* 適中邊距 */
 }
 
 .gforce-unit {
