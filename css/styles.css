@@ -211,16 +211,16 @@ body::before {
 .gforce-primary {
   display: inline-block; /* 必須設為 inline-block 才能套用 transform */
   font-family: 'Oswald', 'Impact', var(--font-mono);
-  font-size: 28vw; /* 巨大字體 */
+  font-size: 34vw; /* 巨大字體 (再放大) */
   font-weight: 700;
   line-height: 1;
   color: var(--text-primary);
   text-shadow: 0 0 40px var(--dynamic-glow);
   transition: text-shadow var(--transition-normal);
   letter-spacing: -0.02em;
-  transform: scaleY(1.8); /* 縱向拉長 1.8 倍 */
+  transform: scaleY(2.2); /* 縱向拉長 2.2 倍 */
   transform-origin: bottom; /* 基線對齊底部比較好看 */
-  margin: 8vh 0; /* 給予上下足夠空間避免與其他元素重疊 */
+  margin: 10vh 0; /* 給予上下足夠空間避免與其他元素重疊 */
 }
 
 .gforce-unit {
