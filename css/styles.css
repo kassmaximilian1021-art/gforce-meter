@@ -202,16 +202,16 @@ body::before {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: var(--space-lg) var(--space-md);
+  padding: var(--space-md);
   position: relative;
-  flex: 1; 
-  min-height: 85vh; /* 讓數值區佔滿大部分畫面，圖表被推到下面 */
+  flex: 1;
+  min-height: 50vh; /* 適度高度，避免推擠其他元件 */
 }
 
 .gforce-primary {
-  display: inline-block; /* 必須設為 inline-block 才能套用 transform */
+  display: inline-block;
   font-family: 'Oswald', 'Impact', var(--font-mono);
-  font-size: 24vw; /* 適中巨大字體 */
+  font-size: clamp(4.5rem, 20vw, 7.5rem); /* 自適應大小，兼顧清晰與不破版 */
   font-weight: 700;
   line-height: 1;
   color: var(--text-primary);
@@ -219,9 +219,7 @@ body::before {
   transition: text-shadow var(--transition-normal);
   letter-spacing: -0.02em;
   white-space: nowrap;
-  transform: scaleY(1.5); /* 縱向適度拉長 1.5 倍 */
-  transform-origin: bottom;
-  margin: 4vh 0 2vh 0; /* 縮小上下邊距，防止撐爆畫面 */
+  margin: 0; /* 完全清空 margin，避免推開版面 */
 }
 
 .gforce-unit {
