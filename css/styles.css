@@ -211,31 +211,39 @@ body::before {
 .gforce-primary {
   display: inline-block;
   font-family: 'Oswald', 'Impact', var(--font-mono);
-  font-size: clamp(8rem, 30vw, 13rem); /* 巨大醒目數字 */
+  font-size: clamp(8.5rem, 32vw, 14rem); /* 寬度微調微寬 */
   font-weight: 700;
-  line-height: 0.9;
-  color: var(--text-primary);
-  text-shadow: 0 0 40px var(--dynamic-glow);
+  line-height: 1;
+  color: #FFFFFF;
+  /* 黑色實心描邊 + 雙層重黑陰影：確保亮黃/亮綠背景時文字極致清晰 */
+  -webkit-text-stroke: 3px #000000;
+  text-shadow: 0 0 20px #000000, 0 0 40px #000000;
   transition: text-shadow var(--transition-normal);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   white-space: nowrap;
-  margin: 0; /* 靠 flex 置中，不需要外距 */
+  transform: scaleY(1.8); /* 縱向適度拉長 1.8 倍 */
+  transform-origin: center;
+  margin: 0;
 }
 
 .gforce-unit {
-  font-size: 1.5rem;
-  font-weight: 400;
-  color: var(--text-secondary);
-  margin-left: 4px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  -webkit-text-stroke: 1.5px #000000;
+  text-shadow: 0 0 10px #000000;
+  margin-left: 6px;
 }
 
 .gforce-label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  margin-top: var(--space-xs);
+  color: #FFFFFF;
+  -webkit-text-stroke: 1px #000000;
+  text-shadow: 0 0 10px #000000;
+  margin-top: var(--space-md);
 }
 
 .gforce-secondary {
