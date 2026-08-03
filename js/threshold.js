@@ -107,6 +107,18 @@ export class ThresholdManager {
     return '#0F172A'; 
   }
 
+  // 取得目前停留在哪個門檻區間內 (用來支援持續響鈴)
+  getMatchingThresholds(gValue) {
+    const matched = [];
+    for (const t of this.thresholds) {
+      if (!t.enabled) continue;
+      if (Math.abs(gValue - t.value) <= 0.025) {
+        matched.push(t);
+      }
+    }
+    return matched;
+  }
+
   // 返回 CSS 背景樣式 (radial-gradient)
   getBackgroundStyle(gValue) {
     const centerColor = this.getColorForG(gValue);

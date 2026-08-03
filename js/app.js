@@ -25,6 +25,7 @@ const state = {
   sampleCounter: 0,          // 取樣計數器（用於降頻）
   wakeLock: null,            // Screen Wake Lock 引用
   elapsedDisplay: 0,         // 顯示用的經過時間
+  audioContinuous: false,    // 是否在區間內持續播放音效
 };
 
 // ==========================================
@@ -109,6 +110,7 @@ function cacheDomElements() {
 
   // 音效
   dom.toggleAudio = document.getElementById('toggle-audio');
+  dom.toggleAudioContinuous = document.getElementById('toggle-audio-continuous');
 
   // 歷史面板
   dom.historyOverlay = document.getElementById('history-overlay');
@@ -162,6 +164,9 @@ async function init() {
 
   // 防止重新整理時資料遺失
   setupBeforeUnload();
+
+  // 載入設定
+  loadSettings();
 
   // 註冊 Service Worker
   registerServiceWorker();
@@ -218,6 +223,7 @@ function bindEvents() {
 
   // 音效開關
   dom.toggleAudio.addEventListener('click', handleAudioToggle);
+  dom.toggleAudioContinuous.addEventListener('click', handleAudioContinuousToggle);
 
   // 刪除所有資料
   dom.btnClearAllSessions.addEventListener('click', handleClearAllSessions);
@@ -473,9 +479,18 @@ function updateGForceBar(gLong) {
 // 門檻穿越偵測與音效
 // ==========================================
 function checkThresholdCrossings(gLong) {
+  if (!audio.isEnabled() || !audio.isReady()) return;
+
+  // 檢查是否跨越門檻
   const crossings = threshold.checkCrossings(state.prevGLong, gLong);
-  if (crossings.length > 0 && audio.isEnabled() && audio.isReady()) {
+  if (crossings.length > 0) {
     for (const t of crossings) {
+      audio.playThresholdCrossing(t.value, t.frequency);
+    }
+  } else if (state.audioContinuous) {
+    // 檢查是否持續停留在某門檻區間
+    const matched = threshold.getMatchingThresholds ? threshold.getMatchingThresholds(gLong) : [];
+    for (const t of matched) {
       audio.playThresholdCrossing(t.value, t.frequency);
     }
   }
@@ -756,7 +771,23 @@ function updateChartThresholds() {
 // ==========================================
 function handleAudioToggle() {
   const isOn = dom.toggleAudio.classList.toggle('active');
+  dom.toggleAudio.setAttribute('aria-checked', isOn);
   audio.setEnabled(isOn);
+}
+
+function handleAudioContinuousToggle() {
+  state.audioContinuous = dom.toggleAudioContinuous.classList.toggle('active');
+  dom.toggleAudioContinuous.setAttribute('aria-checked', state.audioContinuous);
+  localStorage.setItem('gforce_audio_continuous', state.audioContinuous);
+}
+
+function loadSettings() {
+  const savedContinuous = localStorage.getItem('gforce_audio_continuous');
+  if (savedContinuous === 'true') {
+    state.audioContinuous = true;
+    dom.toggleAudioContinuous.classList.add('active');
+    dom.toggleAudioContinuous.setAttribute('aria-checked', 'true');
+  }
 }
 
 // ==========================================
