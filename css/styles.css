@@ -211,19 +211,21 @@ body::before {
 .gforce-primary {
   display: inline-block;
   font-family: 'Oswald', 'Impact', var(--font-mono);
-  font-size: clamp(8.5rem, 32vw, 14rem); /* 寬度微調微寬 */
+  font-size: clamp(7rem, 26vw, 11rem);
   font-weight: 700;
   line-height: 1;
   color: #FFFFFF;
-  /* 黑色實心描邊 + 雙層重黑陰影：確保亮黃/亮綠背景時文字極致清晰 */
+  /* 黑色實心描邊 + 雙層重黑陰影 */
   -webkit-text-stroke: 3px #000000;
   text-shadow: 0 0 20px #000000, 0 0 40px #000000;
   transition: text-shadow var(--transition-normal);
   letter-spacing: -0.03em;
   white-space: nowrap;
-  transform: scaleY(1.8); /* 縱向適度拉長 1.8 倍 */
-  transform-origin: center;
-  margin: 0;
+  font-variant-numeric: tabular-nums; /* 等寬數字：鎖定字高與基線，徹底解決正負號切換時的抖動 */
+  font-feature-settings: "tnum";
+  transform: scaleY(1.5);
+  transform-origin: bottom; /* 鎖定底部基線，防止上下位移 */
+  margin-bottom: 2rem; /* 留出空間，絕不壓到「前後方向」文字 */
 }
 
 .gforce-unit {
@@ -243,7 +245,7 @@ body::before {
   color: #FFFFFF;
   -webkit-text-stroke: 1px #000000;
   text-shadow: 0 0 10px #000000;
-  margin-top: var(--space-md);
+  margin-top: 1rem;
 }
 
 .gforce-secondary {
