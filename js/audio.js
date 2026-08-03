@@ -20,19 +20,20 @@ export class AudioManager {
   playThresholdCrossing(thresholdValue, frequency) {
     if (!this.enabled || !this.isReady()) return;
 
-    const now = this.audioContext.currentTime;
+    const nowReal = performance.now();
+    const nowAudio = this.audioContext.currentTime;
     
-    // 防抖動 (debounce)：同一門檻 500ms 內不重複播放
+    // 防抖動 (debounce)：同一門檻 500ms 內不重複播放 (使用實際時間避免 context freeze)
     const lastTime = this.lastPlayTime.get(thresholdValue) || 0;
-    if (now - lastTime < 0.5) return;
-    this.lastPlayTime.set(thresholdValue, now);
+    if (nowReal - lastTime < 500) return;
+    this.lastPlayTime.set(thresholdValue, nowReal);
 
     const isSevere = Math.abs(thresholdValue) > 0.3; // 超過 ±0.3G 為嚴重門檻
     
-    this._playBeep(frequency, now);
+    this._playBeep(frequency, nowAudio);
     if (isSevere) {
       // 雙音：150ms 後播放第二聲
-      this._playBeep(frequency, now + 0.15); 
+      this._playBeep(frequency, nowAudio + 0.15); 
     }
   }
 

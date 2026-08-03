@@ -298,7 +298,18 @@ async function handleEnableSensor() {
 // 感測器資料處理（核心即時迴路）
 // ==========================================
 function handleSensorData(data) {
-  // 取樣率降頻
+  const gLong = data.filteredGLong || 0;
+  const gLat = data.filteredGLat || 0;
+  const gVert = data.gVert || 0;
+
+  // 檢查門檻穿越並播放音效 (不受 UI 取樣率影響，維持在 60Hz 避免漏掉極短瞬間的峰值)
+  checkThresholdCrossings(gLong);
+
+  // 更新上一幀 G 值 (必須在 60Hz 執行)
+  state.prevGLong = gLong;
+  state.prevGLat = gLat;
+
+  // 取樣率降頻 (只針對 UI 更新與儲存)
   state.sampleCounter++;
   const skipFactor = Math.max(1, Math.round(60 / state.sampleRate));
   if (state.sampleCounter % skipFactor !== 0) return;
@@ -318,9 +329,6 @@ function handleSensorData(data) {
 
   // 更新 G 力指示條
   updateGForceBar(gLong);
-
-  // 檢查門檻穿越並播放音效
-  checkThresholdCrossings(gLong);
 
   // 更新圖表
   if (chart) {
@@ -350,9 +358,7 @@ function handleSensorData(data) {
     });
   }
 
-  // 更新上一幀 G 值
-  state.prevGLong = gLong;
-  state.prevGLat = gLat;
+  }
 }
 
 // ==========================================
