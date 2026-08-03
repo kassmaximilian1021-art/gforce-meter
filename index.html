@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Vehicle G-Force Meter PWA for performance testing. Measure acceleration, braking, and cornering forces with Kalman-filtered precision.">
+  <title>G-Force Meter</title>
+
+  <!-- iOS Safari PWA 設定 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="G-Force">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- 主題色 -->
+  <meta name="theme-color" content="#0F172A">
+
+  <!-- 樣式表 -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================ -->
+  <!-- 免責聲明 Modal (日文 + 英文)                  -->
+  <!-- ============================================ -->
+  <div id="disclaimer-modal" class="modal-overlay visible">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="disclaimer-icon">⚠️</div>
+        <h2>Safety Disclaimer / 安全に関する免責事項</h2>
+      </div>
+      <div class="modal-body">
+        <!-- 日文 -->
+        <div class="disclaimer-section">
+          <h3>🇯🇵 日本語</h3>
+          <p>本アプリケーションは車両の加速度を測定するツールです。ご使用にあたり、以下の事項にご同意ください。</p>
+          <ul>
+            <li>運転中のスマートフォン操作は大変危険です。必ず安全な場所に停車してから操作してください。</li>
+            <li>本アプリの測定値は参考値であり、精度を保証するものではありません。</li>
+            <li>本アプリの使用により生じたいかなる損害についても、開発者は一切の責任を負いません。</li>
+            <li>公道での使用は各地域の法律・規制を遵守してください。</li>
+            <li>測定中は「おやすみモード」の有効化を推奨します。</li>
+          </ul>
+        </div>
+        <!-- 英文 -->
+        <div class="disclaimer-section">
+          <h3>🇬🇧 English</h3>
+          <p>This application measures vehicle acceleration forces. By using this app, you agree to the following terms.</p>
+          <ul>
+            <li>Operating a smartphone while driving is extremely dangerous. Always stop in a safe location before operating.</li>
+            <li>Measurements are approximate and accuracy is not guaranteed.</li>
+            <li>The developer assumes no liability for any damages arising from the use of this app.</li>
+            <li>Comply with all local laws and regulations when using on public roads.</li>
+            <li>Enabling "Do Not Disturb" mode during measurement sessions is recommended.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-disclaimer-agree" class="btn btn-primary">
+          同意する / I Agree
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 校正中覆蓋層                                  -->
+  <!-- ============================================ -->
+  <div id="calibrating-overlay" class="calibrating-overlay">
+    <div class="calibrating-spinner"></div>
+    <div id="calibrating-text" class="calibrating-text">Calibrating... / 校正中...</div>
+    <div id="calibrating-subtext" class="calibrating-subtext">Please keep the vehicle stationary on level ground.<br>車両を平坦な場所で静止させてください。</div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- GAP 中斷警告 Banner                           -->
+  <!-- ============================================ -->
+  <div id="gap-warning" class="gap-warning">
+    <span>⚠️</span>
+    <span id="gap-warning-text">Recording interrupted / 記録が中断されました</span>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- Toast 通知                                    -->
+  <!-- ============================================ -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ============================================ -->
+  <!-- 主應用程式                                    -->
+  <!-- ============================================ -->
+  <div id="app" class="hidden">
+
+    <!-- 頂部狀態列 -->
+    <div class="status-bar">
+      <span class="app-title">G-Force Meter</span>
+      <div class="status-indicators">
+        <span id="status-label" class="status-label">Idle / 待機中</span>
+        <div id="status-dot-sensor" class="status-dot" title="Sensor"></div>
+        <div id="status-dot-recording" class="status-dot" title="Recording"></div>
+      </div>
+    </div>
+
+    <!-- 主內容 -->
+    <div class="main-content">
+
+      <!-- 感測器初始化畫面 -->
+      <div id="sensor-init-screen" class="sensor-init-screen">
+        <div class="sensor-init-icon">📱</div>
+        <div class="sensor-init-title">Enable Motion Sensors<br>モーションセンサーを有効にする</div>
+        <div class="sensor-init-desc">
+          Tap the button below to grant sensor access. This permission is required for G-force measurement.<br>
+          下のボタンをタップしてセンサーへのアクセスを許可してください。
+        </div>
+        <button id="btn-enable-sensor" class="btn btn-primary" style="padding: 16px 40px; font-size: 1rem;">
+          🔓 Enable / 有効にする
+        </button>
+      </div>
+
+      <!-- G 力數字顯示 (感測器啟用後可見) -->
+      <div id="gforce-section" class="hidden">
+        <!-- 主要 G 力讀數 (縱向) -->
+        <div class="gforce-display">
+          <div>
+            <span id="gforce-value" class="gforce-primary">0.00</span>
+            <span class="gforce-unit">G</span>
+          </div>
+          <div class="gforce-label">Longitudinal / 前後方向</div>
+
+          <!-- G 力方向指示條 -->
+          <div class="gforce-bar-container">
+            <div class="gforce-bar">
+              <div id="gforce-bar-fill" class="gforce-bar-fill"></div>
+              <div class="gforce-bar-center"></div>
+              <div id="gforce-bar-indicator" class="gforce-bar-indicator"></div>
+            </div>
+          </div>
+
+          <!-- 次要讀數 (橫向 + 垂直) -->
+          <div class="gforce-secondary">
+            <div class="gforce-secondary-item">
+              <div id="gforce-lat-value" class="gforce-secondary-value">0.00</div>
+              <div class="gforce-secondary-label">Lateral / 横方向</div>
+            </div>
+            <div class="gforce-secondary-item">
+              <div id="gforce-vert-value" class="gforce-secondary-value">0.00</div>
+              <div class="gforce-secondary-label">Vertical / 上下</div>
+            </div>
+            <div class="gforce-secondary-item">
+              <div id="gforce-accel-value" class="gforce-secondary-value">0.00</div>
+              <div class="gforce-secondary-label">m/s²</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 即時時間軸折線圖 -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">📈 G-Force Timeline / Gフォースタイムライン</span>
+            <span id="chart-time-label" class="chart-card-title" style="color: var(--accent-cyan);">0.0s</span>
+          </div>
+          <div class="chart-canvas-container">
+            <canvas id="timeline-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 底部操作列 -->
+    <div id="bottom-bar" class="bottom-bar hidden">
+      <button id="btn-history" class="btn btn-ghost btn-icon" title="History / 履歴">📋</button>
+      <button id="btn-record" class="btn btn-primary btn-record">
+        ⏺ Start Recording / 記録開始
+      </button>
+      <button id="btn-settings" class="btn btn-ghost btn-icon" title="Settings / 設定">⚙️</button>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 設定面板 (右側滑出)                           -->
+  <!-- ============================================ -->
+  <div id="settings-overlay" class="panel-overlay"></div>
+  <div id="settings-panel" class="settings-panel">
+    <div class="panel-header">
+      <h2>⚙️ Settings / 設定</h2>
+      <button id="btn-settings-close" class="panel-close">&times;</button>
+    </div>
+    <div class="panel-content">
+
+      <!-- 校正 -->
+      <div class="settings-section">
+        <div class="settings-section-title">Calibration / 校正</div>
+        <div class="calibration-steps">
+          <div class="calibration-step">
+            <div id="cal-step1-dot" class="calibration-step-number">1</div>
+            <div class="calibration-step-info">
+              <div class="calibration-step-label">Gravity Calibration / 重力校正</div>
+              <div class="calibration-step-desc">Stop on level ground / 平坦な場所で停車してください</div>
+            </div>
+            <button id="btn-cal-gravity" class="btn btn-ghost" style="font-size: 0.75rem; padding: 8px 14px;">
+              Start / 開始
+            </button>
+          </div>
+          <div class="calibration-step">
+            <div id="cal-step2-dot" class="calibration-step-number">2</div>
+            <div class="calibration-step-info">
+              <div class="calibration-step-label">Forward Axis / 前進方向設定</div>
+              <div class="calibration-step-desc">Drive straight forward / 直進してください</div>
+            </div>
+            <button id="btn-cal-forward" class="btn btn-ghost" style="font-size: 0.75rem; padding: 8px 14px;" disabled>
+              Start / 開始
+            </button>
+          </div>
+        </div>
+        <div id="calibration-record" class="calibration-record hidden">
+          <div id="calibration-record-content"></div>
+        </div>
+      </div>
+
+      <!-- 濾波模式 -->
+      <div class="settings-section">
+        <div class="settings-section-title">Filter Mode / フィルターモード</div>
+        <div id="filter-selector" class="filter-selector">
+          <button class="filter-option active" data-mode="hybrid">🏆 Hybrid</button>
+          <button class="filter-option" data-mode="kalman">Kalman</button>
+          <button class="filter-option" data-mode="lpf">LPF</button>
+          <button class="filter-option" data-mode="sma">SMA</button>
+          <button class="filter-option" data-mode="raw">Raw</button>
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Smoothing Strength / 平滑度</span>
+            <span id="smoothing-value" class="slider-value">0.50</span>
+          </div>
+          <input id="smoothing-slider" type="range" min="0" max="100" value="50">
+        </div>
+      </div>
+
+      <!-- 取樣率 -->
+      <div class="settings-section">
+        <div class="settings-section-title">Sample Rate / サンプリングレート</div>
+        <div id="sample-rate-selector" class="sample-rate-selector">
+          <button class="sample-rate-option" data-rate="10">10Hz</button>
+          <button class="sample-rate-option" data-rate="20">20Hz</button>
+          <button class="sample-rate-option active" data-rate="60">60Hz</button>
+        </div>
+      </div>
+
+      <!-- G 力門檻 -->
+      <div class="settings-section">
+        <div class="settings-section-title">G-Force Thresholds / Gフォース閾値</div>
+        <div id="threshold-list" class="threshold-list">
+          <!-- JS 動態生成 -->
+        </div>
+        <div class="threshold-add-row">
+          <input id="threshold-add-input" class="threshold-add-input" type="number" step="0.01" placeholder="e.g. 0.15 or -0.4">
+          <button id="btn-threshold-add" class="btn btn-ghost" style="font-size: 0.75rem; padding: 8px 14px;">
+            + Add / 追加
+          </button>
+        </div>
+        <div style="margin-top: var(--space-sm);">
+          <button id="btn-threshold-reset" class="btn btn-ghost" style="font-size: 0.7rem; padding: 6px 12px; width: 100%;">
+            ↻ Reset to Defaults / デフォルトに戻す
+          </button>
+        </div>
+      </div>
+
+      <!-- 音效開關 -->
+      <div class="settings-section">
+        <div class="settings-section-title">Audio / オーディオ</div>
+        <div class="toggle-row">
+          <span class="toggle-label">Threshold Alert Sound / 閾値アラート音</span>
+          <button id="toggle-audio" class="toggle-switch active" role="switch" aria-checked="true"></button>
+        </div>
+      </div>
+
+      <!-- 存儲 -->
+      <div class="settings-section">
+        <div class="settings-section-title">Storage / ストレージ</div>
+        <div class="storage-usage">
+          <div class="storage-text">
+            <span id="storage-sessions-count">0 sessions / セッション</span>
+            <span id="storage-used">0 KB</span>
+          </div>
+          <div class="storage-bar">
+            <div id="storage-bar-fill" class="storage-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div style="margin-top: var(--space-md);">
+          <button id="btn-clear-all-sessions" class="btn btn-ghost" style="font-size: 0.7rem; padding: 6px 12px; width: 100%; color: var(--accent-red);">
+            🗑 Delete All Data / 全データ削除
+          </button>
+        </div>
+        <div style="margin-top: var(--space-sm); font-size: 0.65rem; color: var(--text-muted); text-align: center;">
+          ⚠️ Export data promptly. Browser storage may be cleared by iOS.<br>
+          データは速やかにエクスポートしてください。iOSによりストレージがクリアされる場合があります。
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 歷史紀錄面板 (左側滑出)                       -->
+  <!-- ============================================ -->
+  <div id="history-overlay" class="panel-overlay"></div>
+  <div id="history-panel" class="history-panel">
+    <div class="panel-header">
+      <h2>📋 History / 履歴</h2>
+      <button id="btn-history-close" class="panel-close">&times;</button>
+    </div>
+    <div class="panel-content">
+      <div id="session-list" class="session-list">
+        <!-- JS 動態生成 -->
+      </div>
+      <div id="history-empty" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">No recorded sessions yet.<br>まだ記録されたセッションはありません。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 未完成 Session 恢復 Modal                      -->
+  <!-- ============================================ -->
+  <div id="recovery-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="disclaimer-icon">🔄</div>
+        <h2>Session Recovery / セッション復旧</h2>
+      </div>
+      <div class="modal-body">
+        <p>An unfinished recording session was found. Would you like to recover it?</p>
+        <p>未完了の記録セッションが見つかりました。復旧しますか？</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-recovery-discard" class="btn btn-ghost">Discard / 破棄</button>
+        <button id="btn-recovery-recover" class="btn btn-primary">Recover / 復旧</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 無聲防螢幕鎖定 (Wake Lock Fallback)           -->
+  <!-- ============================================ -->
+  <video id="wake-lock-video" muted loop playsinline style="position: fixed; opacity: 0; pointer-events: none; width: 1px; height: 1px;">
+    <!-- 以程式碼產生最小 base64 影片 -->
+  </video>
+
+  <!-- 主程式進入點 -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
