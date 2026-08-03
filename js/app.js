@@ -320,9 +320,6 @@ function handleSensorData(data) {
   const skipFactor = Math.max(1, Math.round(60 / state.sampleRate));
   if (state.sampleCounter % skipFactor !== 0) return;
 
-  const gLong = data.filteredGLong || 0;
-  const gLat = data.filteredGLat || 0;
-  const gVert = data.gVert || 0;
   const accelMs2 = Math.sqrt(
     (data.accelMs2Long || 0) ** 2 + (data.accelMs2Lat || 0) ** 2
   );
@@ -362,8 +359,6 @@ function handleSensorData(data) {
       accelLat: data.accelMs2Lat || 0,
       status: data.gapFlag ? 'gap_end' : 'normal'
     });
-  }
-
   }
 }
 

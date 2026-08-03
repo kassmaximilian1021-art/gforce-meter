@@ -3,7 +3,7 @@
 // 採用 Cache-First 策略，優先從快取讀取
 // ====================================
 
-const CACHE_NAME = 'gforce-meter-v6';
+const CACHE_NAME = 'gforce-meter-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
