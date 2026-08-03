@@ -82,24 +82,15 @@ export class ThresholdManager {
     return `rgb(${r}, ${g}, ${b})`;
   }
 
-  // 返回 CSS 顏色 (只在門檻前後 +/- 0.02 變色，高度對比)
+  // 返回 CSS 顏色 (只在門檻前後 +/- 0.025 變色，高度對比)
   getColorForG(gValue) {
-    if (gValue >= 0.32) return '#FF00FF'; // Magenta
-    if (gValue <= -0.32) return '#FF0000'; // Red
-
-    const stops = [
-      { v: 0.3, c: '#FF00FF' }, // 0.3G: Magenta
-      { v: 0.2, c: '#00FFFF' }, // 0.2G: Cyan
-      { v: 0.1, c: '#00FF00' }, // 0.1G: Lime Green
-      { v: 0.0, c: '#1E293B' }, // 0.0G: 暗灰色 (平靜基準)
-      { v: -0.1, c: '#FFFF00' }, // -0.1G: Yellow
-      { v: -0.2, c: '#FF8800' }, // -0.2G: Orange
-      { v: -0.3, c: '#FF0000' }  // -0.3G: Red
-    ];
-
-    for (const stop of stops) {
-      if (Math.abs(gValue - stop.v) <= 0.025) {
-        return stop.c;
+    // 取得使用者設定的所有啟用門檻
+    const activeThresholds = this.getThresholds().filter(t => t.enabled);
+    
+    // 檢查是否落在任何一個門檻的 ±0.025 區間內
+    for (const t of activeThresholds) {
+      if (Math.abs(gValue - t.value) <= 0.025) {
+        return t.color;
       }
     }
     

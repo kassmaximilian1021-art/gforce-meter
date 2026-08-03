@@ -453,4 +453,36 @@ export class StorageManager {
       return false;
     }
   }
+
+  // 批量分享多個 CSV
+  async shareMultipleCSV(sessionIds) {
+    try {
+      if (!sessionIds || sessionIds.length === 0) return false;
+      
+      const files = [];
+      const dateStr = new Date().toISOString().replace(/[:.]/g, '-');
+      
+      for (const id of sessionIds) {
+        const blob = await this.generateCSVBlob(id);
+        const filename = `gforce_session_${id.substring(0, 8)}_${dateStr}.csv`;
+        files.push(new File([blob], filename, { type: 'text/csv' }));
+      }
+      
+      if (navigator.canShare && navigator.canShare({ files })) {
+        await navigator.share({
+          files,
+          title: 'G-Force Meter Batch Export',
+          text: `Here are ${files.length} G-Force test sessions.`
+        });
+        return true;
+      } else {
+        console.warn('Batch share not supported on this browser/OS');
+        return false;
+      }
+    } catch (e) {
+      console.error('Batch Share CSV Error:', e);
+      return false;
+    }
+  }
 }
+export const storage = new StorageManager();

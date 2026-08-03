@@ -119,6 +119,12 @@ function cacheDomElements() {
   dom.sessionList = document.getElementById('session-list');
   dom.historyEmpty = document.getElementById('history-empty');
 
+  // Batch Toolbar
+  dom.batchToolbar = document.getElementById('batch-toolbar');
+  dom.checkboxSelectAll = document.getElementById('checkbox-select-all');
+  dom.btnBatchDownload = document.getElementById('btn-batch-download');
+  dom.btnBatchShare = document.getElementById('btn-batch-share');
+
   // 存儲
   dom.storageSessionsCount = document.getElementById('storage-sessions-count');
   dom.storageUsed = document.getElementById('storage-used');
@@ -200,6 +206,9 @@ function bindEvents() {
   });
   dom.btnHistoryClose.addEventListener('click', () => closePanel('history'));
   dom.historyOverlay.addEventListener('click', () => closePanel('history'));
+  dom.checkboxSelectAll.addEventListener('change', handleSelectAll);
+  dom.btnBatchDownload.addEventListener('click', handleBatchDownload);
+  dom.btnBatchShare.addEventListener('click', handleBatchShare);
 
   // 校正
   dom.btnCalGravity.addEventListener('click', handleGravityCalibration);
@@ -814,6 +823,55 @@ function closePanel(panel) {
 }
 
 // ==========================================
+// 歷史面板與批次操作
+// ==========================================
+function handleSelectAll(e) {
+  const isChecked = e.target.checked;
+  const checkboxes = dom.sessionList.querySelectorAll('.session-checkbox');
+  checkboxes.forEach(cb => cb.checked = isChecked);
+}
+
+function updateSelectAllState() {
+  const checkboxes = Array.from(dom.sessionList.querySelectorAll('.session-checkbox'));
+  if (checkboxes.length === 0) {
+    dom.checkboxSelectAll.checked = false;
+    dom.checkboxSelectAll.indeterminate = false;
+    return;
+  }
+  const allChecked = checkboxes.every(cb => cb.checked);
+  const someChecked = checkboxes.some(cb => cb.checked);
+  dom.checkboxSelectAll.checked = allChecked;
+  dom.checkboxSelectAll.indeterminate = someChecked && !allChecked;
+}
+
+async function handleBatchDownload() {
+  const selected = Array.from(dom.sessionList.querySelectorAll('.session-checkbox:checked'))
+                        .map(cb => cb.dataset.id);
+  if (selected.length === 0) return;
+
+  showToast(`Downloading ${selected.length} files...`);
+  for (const id of selected) {
+    await storage.downloadCSV(id);
+    await new Promise(r => setTimeout(r, 500)); // 延遲避免瀏覽器阻擋
+  }
+}
+
+async function handleBatchShare() {
+  const selected = Array.from(dom.sessionList.querySelectorAll('.session-checkbox:checked'))
+                        .map(cb => cb.dataset.id);
+  if (selected.length === 0) return;
+
+  if (storage.shareMultipleCSV) {
+    const success = await storage.shareMultipleCSV(selected);
+    if (!success) {
+      showToast('Batch share failed. Try downloading instead.');
+    }
+  } else {
+    showToast('Batch share not supported.');
+  }
+}
+
+// ==========================================
 // 歷史紀錄
 // ==========================================
 async function renderSessionList() {
@@ -823,10 +881,15 @@ async function renderSessionList() {
     if (!sessions || sessions.length === 0) {
       dom.sessionList.innerHTML = '';
       dom.historyEmpty.classList.remove('hidden');
+      dom.batchToolbar.classList.add('hidden');
       return;
     }
 
     dom.historyEmpty.classList.add('hidden');
+    dom.batchToolbar.classList.remove('hidden');
+    dom.checkboxSelectAll.checked = false;
+    dom.checkboxSelectAll.indeterminate = false;
+    
     dom.sessionList.innerHTML = '';
 
     // 按時間倒序排列
@@ -842,23 +905,33 @@ async function renderSessionList() {
         : 'N/A';
 
       item.innerHTML = `
-        <div class="session-item-header">
-          <span class="session-item-date">${startDate.toLocaleDateString()} ${startDate.toLocaleTimeString()}</span>
-          <span class="session-item-duration">${duration}</span>
+        <div style="margin-right: var(--space-md);">
+          <input type="checkbox" class="session-checkbox" data-id="${session.id}">
         </div>
-        <div class="session-item-meta">
-          ${session.dataPointCount || 0} data points / データポイント
-          ${session.status === 'recovered' ? ' (Recovered / 復旧済)' : ''}
-        </div>
-        <div class="session-item-actions">
-          <button class="btn btn-ghost btn-download" data-id="${session.id}">💾 Download</button>
-          <button class="btn btn-ghost btn-share" data-id="${session.id}">📤 Share</button>
-          <button class="btn btn-ghost btn-delete" data-id="${session.id}" style="color: var(--accent-red);">🗑</button>
+        <div style="flex: 1; min-width: 0;">
+          <div class="session-item-header">
+            <span class="session-item-date">${startDate.toLocaleDateString()} ${startDate.toLocaleTimeString()}</span>
+            <span class="session-item-duration">${duration}</span>
+          </div>
+          <div class="session-item-meta">
+            ${session.dataPointCount || 0} data points / データポイント
+            ${session.status === 'recovered' ? ' (Recovered / 復旧済)' : ''}
+          </div>
+          <div class="session-item-actions">
+            <button class="btn btn-ghost btn-download" data-id="${session.id}">💾 Download</button>
+            <button class="btn btn-ghost btn-share" data-id="${session.id}">📤 Share</button>
+            <button class="btn btn-ghost btn-delete" data-id="${session.id}" style="color: var(--accent-red);">🗑</button>
+          </div>
         </div>
       `;
 
       dom.sessionList.appendChild(item);
     }
+
+    // 綁定 checkbox 事件
+    dom.sessionList.querySelectorAll('.session-checkbox').forEach(cb => {
+      cb.addEventListener('change', updateSelectAllState);
+    });
 
     // 綁定按鈕事件
     dom.sessionList.querySelectorAll('.btn-download').forEach(btn => {

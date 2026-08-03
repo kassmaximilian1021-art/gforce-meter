@@ -319,6 +319,19 @@
       <h2>📋 History / 履歴</h2>
       <button id="btn-history-close" class="panel-close">&times;</button>
     </div>
+    
+    <!-- Batch Action Toolbar -->
+    <div class="batch-toolbar hidden" id="batch-toolbar">
+      <div class="batch-select-all">
+        <input type="checkbox" id="checkbox-select-all" class="session-checkbox">
+        <label for="checkbox-select-all">All</label>
+      </div>
+      <div class="batch-actions">
+        <button id="btn-batch-download" class="btn btn-icon" title="Download Selected">💾</button>
+        <button id="btn-batch-share" class="btn btn-icon" title="Share Selected">📤</button>
+      </div>
+    </div>
+
     <div class="panel-content">
       <div id="session-list" class="session-list">
         <!-- JS 動態生成 -->

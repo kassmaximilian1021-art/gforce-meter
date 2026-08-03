@@ -934,6 +934,39 @@ input[type="range"]::-webkit-slider-thumb {
 
 .history-panel.open { left: 0; }
 
+.batch-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.batch-toolbar.hidden {
+  display: none;
+}
+
+.batch-select-all {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.batch-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.session-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
 .session-list {
   display: flex;
   flex-direction: column;
@@ -941,6 +974,8 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .session-item {
+  display: flex;
+  align-items: center;
   padding: var(--space-md);
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
